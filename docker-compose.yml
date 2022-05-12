@@ -1,0 +1,21 @@
+version: '2.2'
+services:
+  node:
+    container_name: socket
+    image: node:alpine
+    #cpuset: '1'
+    #mem_limit: 512m
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    environment:
+     - PORT=80
+    volumes:
+      - $PWD/../.npm/:/root/.npm
+      - $PWD/:/root/react
+    networks:
+      - net
+    ports:
+      - '80:80'
+    #  - '8080:8080'
+networks:
+  net:
