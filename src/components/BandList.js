@@ -1,12 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { SocketContext } from '../context/SocketContext';
 
-export const BandList = ({ data, votar }) => {
-    const [bands, setBands] = useState(data);
+export const BandList = () => {
+    const [bands, setBands] = useState([]);
+    const { socket } = useContext(SocketContext);
 
     useEffect(() => {
-        setBands(data);
+        socket.on('band-list', (bands) => {
+            setBands(bands);
+        });
 
-    }, [data]);
+        // Ya no escuche
+        return () => socket.off('band-list');
+    }, [socket]);
 
     const nameChanged = (event, id) => {
         const newName = event.target.value;
@@ -19,9 +25,15 @@ export const BandList = ({ data, votar }) => {
     }
 
     const onLeaveFocus = (id, name) => {
-        console.log(id, name);
+        socket.emit('cambiar-nombre-banda', { id, name });
+    }
 
-        //TODO: Disparar el socket
+    const vote = (id) => {
+        socket.emit('votar-banda', { id });
+    }
+
+    const remove = (id) => {
+        socket.emit('borrar-banda', { id });
     }
 
     const createRows = () => {
@@ -29,7 +41,10 @@ export const BandList = ({ data, votar }) => {
             bands.map(band => (
                 <tr key={band.id}>
                     <td>
-                        <button className='btn btn-primary' onClick={() => votar(band.id)}> +1 </button>
+                        <button
+                            className='btn btn-primary'
+                            onClick={() => vote(band.id)}
+                        > +1 </button>
                     </td>
                     <td>
                         <input
@@ -41,7 +56,10 @@ export const BandList = ({ data, votar }) => {
                     </td>
                     <td><h3> {band.votes} </h3></td>
                     <td>
-                        <button className='btn btn-danger'>Borrar</button>
+                        <button
+                            className='btn btn-danger'
+                            onClick={() => remove(band.id)}
+                        >Borrar</button>
                     </td>
                 </tr>
             ))
